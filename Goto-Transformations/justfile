@@ -1,0 +1,6 @@
+
+bin := 'binaries/'
+
+
+remove-function-pointers:
+    {{bin}}cbmc --show-goto-functions listings/remove_function_pointers.c | tail -26
