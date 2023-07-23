@@ -3,7 +3,7 @@
 ## Table of Contents
 
 TODO: Focus on most important stuff (no mmio).
-
+TODO: Add link to implementation.
 
 1. [Introduction](##Introduction)
 2. [Symex-Ready Goto Transformations](##"Symex-Ready\ Goto\ Transformations")
@@ -169,3 +169,51 @@ if it does, it inserts the preconditions before the call-site.
 
 After it has done so for every function, the it iterates through the function map
 again, finding any functions containing preconditions, and removing them.
+
+## Remove Returns
+
+This transformation eliminates return statements from the program, and in their
+place it substitutes for reads/writes to global variables. The transformation
+looks like this:
+
+```c
+// original
+int foo()
+{
+   return 1;
+}
+
+r = foo();
+
+// transformed (symbolically, the signature of the function isn't really changed)
+int foo_return;
+void foo()
+{
+   foo_return = 1;
+}
+
+foo();
+r = foo_return;
+```
+
+To see it in GOTO, let's try the following:
+
+```sh
+$ binaries/cbmc --show-goto-functions listings/remove_return.c | tail -33
+foo /* foo */
+        // 17 file listings/remove_return.c line 3 function foo
+        SET RETURN VALUE (foo::b = 2 ? 4 : 8)
+        // 18 file listings/remove_return.c line 4 function foo
+        END_FUNCTION
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+main /* main */
+        DECL main::$tmp::return_value_foo : signedbv[32]
+        CALL main::$tmp::return_value_foo := foo(main::1::nondet)
+        ASSIGN main::1::res := main::$tmp::return_value_foo
+        ASSERT main::1::res ≠ 4 // expected false, path exists for res == 4
+        //...
+```
+
+This operation also has a dual in the form of `restore_returns()`

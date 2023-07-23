@@ -10,3 +10,6 @@ linking-cprover-lib:
 
 instrument-preconditions:
     {{bin}}cbmc --show-goto-functions listings/instrument_precond.c | tail -39
+
+remove-returns:
+    {{bin}}cbmc --show-goto-functions listings/remove_return | tail -33
