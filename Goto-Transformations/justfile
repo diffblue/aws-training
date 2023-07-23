@@ -12,4 +12,7 @@ instrument-preconditions:
     {{bin}}cbmc --show-goto-functions listings/instrument_precond.c | tail -39
 
 remove-returns:
-    {{bin}}cbmc --show-goto-functions listings/remove_return | tail -33
+    {{bin}}cbmc --show-goto-functions listings/remove_return.c | tail -33
+
+rewrite-union:
+    {{bin}}cbmc --show-goto-functions listings/rewrite_union.c | tail -17

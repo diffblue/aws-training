@@ -217,3 +217,52 @@ main /* main */
 ```
 
 This operation also has a dual in the form of `restore_returns()`
+
+### Remove/Lower Vector Typed Expressions
+
+### Remove/Lower Complex Typed Expression
+
+### Rewrite Unions
+
+This transformation rewrites union member reads as `byte_extract` expressions
+and union member writes as `byte_update` expressions. So for code like:
+
+```c
+typedef union uni {
+    int a;
+    int b;
+} uni;
+
+int main() {
+    uni u = {.a = 3, .b = 4 };
+    u.a = 5;
+    __CPROVER_assert(u.a != 4, "expected failure, a is 5");
+}
+```
+
+We get:
+
+```sh
+$ binaries/cbmc --show-goto-functions listings/rewriting_union.c
+[...]
+        DECL main::1::u : union tag-uni
+        ASSIGN main::1::u := byte_update_little_endian(side_effect statement="nondet" is_nondet_nullable="1", 0, 4, union tag-uni)
+        ASSIGN byte_extract_little_endian(main::1::u, 0, signedbv[32]) := 5
+        ASSERT byte_extract_little_endian(main::1::u, 0, signedbv[32]) ≠ 4 // expected failure, a is 5
+[...]
+```
+
+The reason for this transformation is to facilitate presenting a unified interface
+to symex (with `byte_update`).
+
+### goto_check_c
+
+### Adjust Float Expressions
+
+### Goto Functions Update
+
+### Add Failed Symbols
+
+### Remove Skip Instructions
+
+### Label Properties
