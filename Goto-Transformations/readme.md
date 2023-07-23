@@ -2,6 +2,9 @@
 
 ## Table of Contents
 
+TODO: Focus on most important stuff (no mmio).
+
+
 1. [Introduction](##Introduction)
 2. [Symex-Ready Goto Transformations](##"Symex-Ready\ Goto\ Transformations")
 
@@ -57,6 +60,28 @@ following instruction:
 
 ```sh
 $ cbmc --show-goto-functions listings/remove_asm.c
+```
+
+### Linking to standard libraries
+
+This transformation is looking for function calls inside the goto-program,
+where the body of the function is missing and searches the CPROVER library
+(under `src/ansi-c/library/`) for a function matching the signature and includes
+it in the goto-model.
+
+This usually shows up in the output when the step `Adding CPROVER library` is
+done. An actual example would look like this:
+
+```sh
+$ cbmc --show-goto-functions listings/linking_cprover_lib.c
+[...]
+Adding CPROVER library (arm64)
+file <builtin-library-fabs> line 2: warning: implicit function declaration "fabs"
+old definition in module linking_cprover_lib file listings/linking_cprover_lib.c line 5 function main
+signed int (void)
+new definition in module <built-in-library> file <builtin-library-fabs> line 2
+double (double d)
+[...]
 ```
 
 ### Remove Function Pointers
