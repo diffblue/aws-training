@@ -129,3 +129,43 @@ and it works in pretty much the expected way:
    code block that forms a dispatch table.
 5. Substitute the original instruction with the codeblock containing the dispatch
    table.
+
+### Instrument preconditions
+
+This transformation is moving function preconditions (which are in the form
+of `__CPROVER_precondition`s in the first few instructions of the function body)
+before call sites of the functions that are instrumented.
+
+Let's have a look:
+
+```c
+#include <assert.h>
+
+int div(int a, int b)
+{
+    __CPROVER_precondition(b != 0, "Can't divide by zero");
+    __CPROVER_precondition(a != 0, "Dividend expected to not be zero");
+    return a / b;
+}
+
+int main()
+{
+    int a;
+    int b;
+    assert(div(a, b) != 0);
+}
+```
+
+```sh
+$ just --show instrument-preconditions
+[...]
+$ just instrument-preconditons
+[...]
+```
+
+The way this works is by going through all the function calls in the goto-program,
+finding whether the particular function at that call site has any preconditions, and
+if it does, it inserts the preconditions before the call-site.
+
+After it has done so for every function, the it iterates through the function map
+again, finding any functions containing preconditions, and removing them.
