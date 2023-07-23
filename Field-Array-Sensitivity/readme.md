@@ -1,9 +1,5 @@
 # Field and Array Sensitivity
 
-## Table of Contents
-
-1. [Introduction](##Introduction)
-
 ## Introduction
 
 This is a live tutorial on how field and array senstivitiy works in Goto-Symex.
