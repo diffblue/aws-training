@@ -309,7 +309,43 @@ $ just goto-checkc-div-zero
 
 ### Adjust Float Expressions
 
+This transforms operations applied to floating-point values in the program into
+floating-point-specific operations (`ID_plus` -> `float_bv_plus`), which are
+carrying more information, such as the rounding mode, which affects the evaluation
+of these operations as applied to floating point operands. As an example, C code
+like the following:
+
+```c
+int main()
+{
+    float a = 3.10f;
+    float b = 2.09f;
+    float c = a + b;
+    __CPROVER_assert(c != 3.19f, "may fail");
+}
+```
+
+Would have the `+` operator between the two float operands transformed into:
+
+```sh
+$ just adjust-float-expressions
+[...]
+ASSIGN main::1::c := floatbv_plus(main::1::a, main::1::b, __CPROVER_rounding_mode)
+[...]
+```
+
 ### Goto Functions Update
+
+This transformation re-adjusts missing/invalidated fields on `goto-functions`
+that need to be changed as a result of previous transformations.
+
+This re-adjusts incoming edges for all instructions, target counts (the instruction
+target-index for the targets table of another instruction), location numbers (the
+global numeric identifier for an instruction in the program) and loop counts
+(a numeric identifier for each loop).
+
+Isn't amenable to easy demoing without trying to bring CBMC into a semi-crippled
+basis, so we're going to skip a demo for this one.
 
 ### Add Failed Symbols
 

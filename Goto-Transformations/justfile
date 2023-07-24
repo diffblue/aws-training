@@ -28,3 +28,6 @@ goto-checkc-div-zero:
 
 remove-complex:
     {{bin}}cbmc --show-goto-functions listings/complex.c | tail -17
+
+adjust-float-expressions:
+    {{bin}}cbmc --show-goto-functions listings/float_demo.c | tail -27
