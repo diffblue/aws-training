@@ -1,0 +1,9 @@
+
+clone-and-build-cbmc:
+    git clone --depth 1 --branch cbmc-5.88.0 git@github.com:diffblue/cbmc.git
+    cd cbmc && cmake -S. -Bbuild -DWITH_JBMC=OFF
+    cmake --build cbmc/build -j10
+
+install-cbmc-homebrew:
+    brew install cbmc@5.88.0
+    whereis cbmc
