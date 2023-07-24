@@ -1,9 +1,21 @@
+homebrew_lib_dir := "/opt/homebrew/Cellar/cbmc@5.88.0/5.88.0/libexec/lib"
+homebrew_include_dir := "/opt/homebrew/Cellar/cbmc@5.88.0/5.88.0/include/cprover"
 
 clone-and-build-cbmc:
-    git clone --depth 1 --branch cbmc-5.88.0 git@github.com:diffblue/cbmc.git
+    -git clone --depth 1 --branch cbmc-5.88.0 git@github.com:diffblue/cbmc.git
     cd cbmc && cmake -S. -Bbuild -DWITH_JBMC=OFF
     cmake --build cbmc/build -j10
+
+test-libcprover-rust: clone-and-build-cbmc
+    cd cbmc/src/libcprover-rust && CBMC_INCLUDE_DIR=../libcprover-cpp/ CBMC_LIB_DIR=../../build/lib CBMC_VERSION=5.88.0 cargo test -- --test-threads=1
 
 install-cbmc-homebrew:
     brew install cbmc@5.88.0
     whereis cbmc
+
+create-project:
+    cargo new --bin minikani
+    cd minikani && cargo add libcprover_rust@5.88.0
+
+add-dependency-and-build: create-project
+    cd minikani && CBMC_INCLUDE_DIR={{homebrew_include_dir}} CBMC_LIB_DIR={{homebrew_lib_dir}} CBMC_VERSION=5.88.0 cargo run

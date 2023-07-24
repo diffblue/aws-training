@@ -7,13 +7,13 @@ API to integrate with CBMC at an FFI level instead of using CBMC as a binary.
 
 Libcprover Rust is hosted under the `src/libcprover-rust` subfolder inside the
 CBMC repository. For a user who wishes to integrate with it, it's also available
-as a crate, at [`crates.io: Libcprover-rust`](https://crates.io/crates/libcprover_rust)
+as a crate, at [`crates.io: Libcprover-rust`](https://crates.io/crates/libcprover_rust).
 
 Next, we're going to show how you can interact with the project within the
 `cbmc` repository (such as, run its tests) before we move on to how to integrate
 it in another repository as a user.
 
-## Interacting with `src/libcprover-rust/`
+## Interacting with `src/libcprover-rust/` within CBMC
 
 The first step before any interaction with the API itself, is to build CBMC.
 We depend on the static library artifact that encompases all of CBMC for now
@@ -155,3 +155,150 @@ which we can explain as follows:
 * `--test-threads=1` - by default the test-binary harness runs with as many threads as it
   can based on the local machine. However, CBMC is not built into a thread safe way, so we
   need to limit the number of threads so we don't get any concurrency errors from CBMC's end.
+* `--nocapture` - tells harness to pass through writes to `stdout` instead of intercepting it
+  (useful when debugging - you can ignore it if you just want to exercise the test suite).
+
+## Integrating/Using Libcprover-rust
+
+What we saw before is the interaction base for a developer of `libcprover-rust` (or someone
+who wants to modify it before building/integrating it in his own project).
+
+How would one go about using it however, without changing its source code? In other words,
+is there any way to integrate it the same way someone might integrate with any other Rust library?
+
+As you can probably guess, the answer to this question is positive.
+
+In the beginning of this tutorial, we mentioned that the library is published as
+a crate in `crates.io`. Indeed, the project's page in `crates.io` can be found
+at [`crates.io: Libcprover-rust`](https://crates.io/crates/libcprover_rust), and
+integration is as easy as any other Rust crate.
+
+For the rest of this tutorial, we're going to build a tool called `minikani`, which is
+going to be a miniature kani/cbmc, based on the APIs we expose already as part of the C++
+API of CBMC. Our project is going to exclusively use Rust code, and no C++ code (we're
+going to use `Libcprover-rust`, which underneath hooks into `Libcprover-cpp`).
+
+As before, the first thing we're actually going to occupy ourselves with is to install
+the dependencies for the Rust project - as a reminder, we depend on the whole of CProver
+as a static library - `libcprover-x.y.z.a` - and the headers that the compilers depend
+on while building the Rust FFI bridge.
+
+One possible way as we saw before is to build CBMC locally. Another way to make sure
+these dependencies are installed is through a distribution's package manager. In my
+case, I'm going to use homebrew to install `cbmc.5.88.0`:
+
+```sh
+$ brew install cbmc@5.88.0
+[...]
+$ whereis cbmc
+cbmc: /opt/homebrew/bin/cbmc /opt/homebrew/share/man/man1/cbmc.1
+$ /opt/homebrew/Cellar/cbmc@5.88.0/5.88.0/libexec/lib
+[...] libcprover.5.88.0.a
+$ ls /opt/homebrew/Cellar/cbmc@5.88.0/5.88.0/include/cprover
+api.h                 api_options.h         verification_result.h
+```
+
+Excellent. With the dependencies now installed, I'm going to go ahead and create
+a new rust project:
+
+```sh
+$ cargo new minikani
+Created binary (application) `minikani` package
+```
+
+Now, with our new project in place, we want to add our dependency, and build our
+project to make sure that no compilation problems exist and everything works as
+we would expect:
+
+```sh
+$ cd minikani
+$ cargo add libcprover_rust@5.88.0
+$ cargo run
+  Downloaded libcprover_rust v5.88.0
+  Downloaded 1 crate (10.8 KB) in 0.89s
+   Compiling proc-macro2 v1.0.66
+   Compiling cc v1.0.79
+   Compiling unicode-ident v1.0.11
+   Compiling scratch v1.0.7
+   Compiling cxxbridge-flags v1.0.102
+   Compiling unicode-width v0.1.10
+   Compiling termcolor v1.2.0
+   Compiling once_cell v1.18.0
+   Compiling codespan-reporting v0.11.1
+   Compiling link-cplusplus v1.0.9
+   Compiling cxx v1.0.102
+   Compiling quote v1.0.32
+   Compiling syn v2.0.27
+   Compiling cxx-build v1.0.102
+   Compiling cxxbridge-macro v1.0.102
+   Compiling libcprover_rust v5.88.0
+error: failed to run custom build command for `libcprover_rust v5.88.0`
+
+Caused by:
+  process didn't exit successfully: `/Users/fotis/Devel/AWS_Training/Libcprover-rust-demo/minikani/target/debug/build/libcprover_rust-7c430bb2b40894d0/build-script-build` (exit status: 101)
+  --- stderr
+  thread 'main' panicked at 'Error: Environment variable `CBMC_INCLUDE_DIR' not set.
+   Advice: Please set the environment variable `CBMC_INCLUDE_DIR' with the path that contains cprover/api.h on your system.', /Users/fotis/.cargo/registry/src/github.com-1ecc6299db9ec823/libcprover_rust-5.88.0/build.rs:67:13
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+warning: build failed, waiting for other jobs to finish...
+```
+
+Ooops. It seems like we forgot to provide our environment variables. This is also
+hinted at by the error message during the compilation:
+
+```
+'Error: Environment variable `CBMC_INCLUDE_DIR' not set.
+Advice: Please set the environment variable `CBMC_INCLUDE_DIR' with the path that contains cprover/api.h on your system.'
+```
+
+Let's try to point the build system to the folders we identified previously as
+containing our dependencies:
+
+```sh
+$ CBMC_INCLUDE_DIR=/opt/homebrew/Cellar/cbmc@5.88.0/5.88.0/include/cprover/ CBMC_LIB_DIR=/opt/homebrew/Cellar/cbmc@5.88.0/5.88.0/libexec/lib CBMC_VERSION=5.88.0 cargo run
+Compiling libcprover_rust v5.88.0
+   Compiling minikani v0.1.0 (/Users/fotis/Devel/AWS_Training/Libcprover-rust-demo/minikani)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.96s
+     Running `target/debug/minikani`
+Hello, world!
+```
+
+Awesome. This means that we have built our binary, include `libcprover-rust`. But...
+our binary doesn't use the library yet, and doesn't do anything excitement generating
+yet (there's only so much excitement we can get from a `Hello, world!`).
+
+Let's make it a bit more exciting. Let's change our `main.rs`:
+
+```rust
+use libcprover_rust::cprover_api;
+use libcprover_rust::ffi_util;
+use std::process;
+
+fn main() {
+    let client = cprover_api::new_api_session();
+
+    let vec: Vec<String> = vec!["/tmp/example.c".to_owned()];
+
+    let vect = ffi_util::translate_rust_vector_to_cpp(vec);
+
+    if let Err(err) = client.load_model_from_files(vect) {
+        eprintln!("Failed to load model from files: {:?} {:?}", vect, err);
+        process::exit(1);
+    }
+
+    // Validate integrity of goto-model
+    if let Err(_) = client.validate_goto_model() {
+        eprintln!("Failed to validate goto model from files: {:?}", vect);
+        process::exit(1);
+    }
+
+    if let Err(_) = client.verify_model() {
+        eprintln!("Failed to verify model from files: {:?}", vect);
+        process::exit(1);
+    }
+
+    let msgs_cpp = cprover_api::get_messages();
+    let msgs_rust = ffi_util::translate_cpp_vector_to_rust(msgs_cpp);
+    ffi_util::print_response(&msgs_rust);
+}
+```
