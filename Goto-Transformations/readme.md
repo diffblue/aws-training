@@ -349,6 +349,48 @@ basis, so we're going to skip a demo for this one.
 
 ### Add Failed Symbols
 
+A failed symbol is a pointer dereference at an lvalue position, for which we do
+not have adequate information to determine who the pointee is.
+
+Doesn't lend itself to easy demoing, as we can't demonstrate failed symbols in a user
+friendly manner, as this information is attached to the type of the symbol, for
+which we can't more information about outside of what's available when we print
+the symbol table.
+
+I have however, isolated some debug output from a custom build of CBMC to show
+us what symbols are added as failed for the following program:
+
+```c
+int main()
+{
+  int *p, *q, *a, *b;
+
+  q = a;
+  p = b;
+
+  *p = 1;
+  *q = 2;
+
+  // this should work if no pointer checks are enabled
+  assert(*p == 1);
+  assert(*q == 2);
+}
+```
+
+for which we get:
+
+```
+[DEBUG] Adding failed symbol main::1::b$object
+[DEBUG] Adding failed symbol main::1::a$object
+[DEBUG] Adding failed symbol main::1::q$object
+[DEBUG] Adding failed symbol main::1::p$object
+[DEBUG] Adding failed symbol __CPROVER_architecture_os$object   // const char * = "macos"
+[DEBUG] Adding failed symbol __CPROVER_architecture_arch$object // const char * = "arm64"
+[DEBUG] Adding failed symbol __CPROVER_dead_object$object
+[DEBUG] Adding failed symbol __CPROVER_deallocated$object
+[DEBUG] Adding failed symbol __CPROVER_memory_leak$object
+```
+
 ### Remove Skip Instructions
 
 This transformation is removing `SKIP` instructions at the GOTO level. These are
