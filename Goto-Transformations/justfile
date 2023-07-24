@@ -25,3 +25,6 @@ goto-checkc-div-zero:
     {{bin}}cbmc --div-by-zero-check --show-goto-functions listings/div_zero.c > instr.goto.txt
     -diff no_instr.goto.txt instr.goto.txt
     rm no_instr.goto.txt instr.goto.txt
+
+remove-complex:
+    {{bin}}cbmc --show-goto-functions listings/complex.c | tail -17

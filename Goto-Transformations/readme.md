@@ -222,6 +222,35 @@ This operation also has a dual in the form of `restore_returns()`
 
 ### Remove/Lower Complex Typed Expression
 
+Removes complex numbers by turning them into struct types.
+
+As an example, consider:
+
+```c
+#include <assert.h>
+
+int main()
+{
+  // C99 Complex number
+  _Complex c;
+  c=1.0i+2;
+
+  assert(__real__ c == 2);
+  assert(__imag__ c == 1);
+}
+```
+
+which is turned into
+
+```sh
+$ just remove-complex
+[...]
+DECL main::1::c : struct { floatbv[64] real, floatbv[64] imag }
+ASSIGN main::1::c := { ... 1.0, ... 2 }
+ASSERT ... ieee_float_equal(main::1::c.real, ...
+ASSERT ... ieee_float_equal(main::1::c.imag, ...
+```
+
 ### Rewrite Unions
 
 This transformation rewrites union member reads as `byte_extract` expressions
@@ -308,7 +337,7 @@ As an example:
 ```sh
 $ binaries/cbmc --bounds-check listings/demo_prop_names.c
 CBMC version 5.88.0 (cbmc-5.88.0) 64-bit arm64 macos
-Parsing /tmp/weird30.c
+Parsing /tmp/demo_prop_names.c
 [...]
 
 ** Results:
