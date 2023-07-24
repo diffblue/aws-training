@@ -16,3 +16,6 @@ remove-returns:
 
 rewrite-union:
     {{bin}}cbmc --show-goto-functions listings/rewrite_union.c | tail -17
+
+label-properties:
+    {{bin}}cbmc --bounds-check listings/demo_prop_names.c

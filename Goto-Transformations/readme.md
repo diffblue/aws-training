@@ -170,7 +170,7 @@ if it does, it inserts the preconditions before the call-site.
 After it has done so for every function, the it iterates through the function map
 again, finding any functions containing preconditions, and removing them.
 
-## Remove Returns
+### Remove Returns
 
 This transformation eliminates return statements from the program, and in their
 place it substitutes for reads/writes to global variables. The transformation
@@ -265,4 +265,38 @@ to symex (with `byte_update`).
 
 ### Remove Skip Instructions
 
+This transformation is removing `SKIP` instructions at the GOTO level. These are
+usually the outcome of some other transformations eliminating some instructions.
+
+Symex doesn't handle `SKIP` instructions, aside from treating them as `LOCATION`
+instructions, which are instructions semantically equivalent to `SKIP`s, but preserved
+after various transformations in the program text.
+
 ### Label Properties
+
+This transformation is responsible operates only on `ASSERT` instructions,
+and is responsible for setting up the identifiers of the various assertions
+in the program.
+
+It does so by fixing a name for the assertion by first prefixing the enclosing
+function's name, then the property's class, and then attaching the current value
+of a counter for them.
+
+As an example:
+
+```sh
+$ binaries/cbmc --bounds-check listings/demo_prop_names.c
+CBMC version 5.88.0 (cbmc-5.88.0) 64-bit arm64 macos
+Parsing /tmp/weird30.c
+[...]
+
+** Results:
+/tmp/weird30.c function main
+[main.array_bounds.1] line 7 array 'A' lower bound in A[(signed long int)nondet]: SUCCESS
+[main.array_bounds.2] line 7 array 'A' upper bound in A[(signed long int)nondet]: SUCCESS
+[main.assertion.1] line 8 expected false: FAILURE
+[main.assertion.2] line 9 expected false: FAILURE
+
+** 2 of 4 failed (2 iterations)
+VERIFICATION FAILED
+```
