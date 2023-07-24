@@ -257,6 +257,27 @@ to symex (with `byte_update`).
 
 ### goto_check_c
 
+This is actually a series of transformations relating to C style language semantics.
+A lot of the instrumentations added by a flag are introduced at this point, after
+checking if the flag has been set up appropriately (`bounds-check`, `enum-range-check`,
+`pointer-checks`, `integer-overflow-checks`, etc).
+
+Let's have a look at an instrumentation added this way:
+
+```sh
+$ just --show goto-checkc-div-zero
+[...]
+$ just goto-checkc-div-zero
+[...]
+42a43,44
+>         ASSERT ¬(*div::b = 0) // division by zero in *a / *b
+>         // 17 file listings/div_zero.c line 3 function div
+44c46
+<         // 17 file listings/div_zero.c line 4 function div
+---
+>         // 18 file listings/div_zero.c line 4 function div
+```
+
 ### Adjust Float Expressions
 
 ### Goto Functions Update
