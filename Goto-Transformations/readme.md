@@ -6,6 +6,7 @@ TODO: Focus on most important stuff (no mmio).
 
 1. [Introduction](##Introduction)
 2. [Symex-Ready Goto Transformations](##"Symex-Ready\ Goto\ Transformations")
+3. [Goto-Instrument Transformations](##"Goto Instrument Transformations")
 
 ## Introduction
 
@@ -484,3 +485,97 @@ Parsing /tmp/demo_prop_names.c
 ** 2 of 4 failed (2 iterations)
 VERIFICATION FAILED
 ```
+
+## Goto-Instrument Transformations
+
+All of the above tranformations are done by `CBMC` to bring the binary
+to what we call [`symex-ready-goto`](https://diffblue.github.io/cbmc/adr/symex-ready-goto.html)
+form. This is the form that symex operates on, and the transformations
+above are *required* before any analysis, in the sense that they lower
+language features that if still present by the time the binary meets symex,
+analysis will not proceed, failing instead with an invariant violation.
+
+All of the aforementioned transformations were also done automatically,
+with the user not needing to know about them to use CBMC.
+
+But there are many more transformations that one can perform on a goto-binary
+before it's sent to analysis, and these are all added to the tool `goto-instrument`.
+The workflow in that case would be:
+
+```
+goto-cc file.c -o file.goto
+goto-instrument --<transform_opt> file.goto file.instrumented.goto
+cbmc file.instrumented.goto
+```
+
+There are a lot of potential transformations that can happen in this manner,
+so in the interest of time, let's just visit a few as a representative sample
+of them and see what they do and how they work.
+
+### `--nondet-static`
+
+In the C standard, `6.7.8` suggests that static members are default initialised
+to a `0` value.
+
+But what happens if you would rather assume `nondet` values for those instead?
+(Say, because you might be analysing a program that runs in a non-standard
+embedded platform where the compiler might be not conforming to the above
+specification).
+
+This is where the `--nondet-static flag` comes in. Assume the following file:
+
+```c
+static int counter;
+
+int main()
+{
+    __CPROVER_assert(counter == 0, "expected false, static init == 0");
+}
+```
+
+CBMC on its own would give us the following result:
+
+```sh
+$ cbmc listings/nondet_static.c
+[...]
+** Results:
+listings/nondet_static.c function main
+[main.assertion.1] line 5 expected false, static init == 0: SUCCESS
+
+** 0 of 1 failed (1 iterations)
+VERIFICATION SUCCESSFUL
+```
+
+But what happens if we instrument the program?
+
+```sh
+$ binaries/goto-cc -o nondet_static.goto listings/nondet_static.c
+
+$ binaries/goto-instrument --nondet-static nondet_static.goto nondet_static.instr.goto
+goto-instrument --nondet-static nondet_static.goto nondet_static.instr.goto
+Reading GOTO program from 'nondet_static.goto'
+Adding nondeterministic initialization of static/global variables
+Writing GOTO program to 'nondet_static.instr.goto'
+
+$ binaries/cbmc nondet_static.instr.goto
+[...]
+** Results:
+listings/nondet_static.c function main
+[main.assertion.1] line 5 expected false, static init == 0: FAILURE
+
+** 1 of 1 failed (2 iterations)
+VERIFICATION FAILED
+
+$ binaries/goto-inspect --show-goto-functions nondet_static.goto
+[...]
+__CPROVER_initialize /* __CPROVER_initialize */
+      // 14 file listings/nondet_static.c line 1
+      ASSIGN counter := 0
+
+$ binaries/goto-inspect --show-goto-functions nondet_static.instr.goto
+__CPROVER_initialize /* __CPROVER_initialize */
+      // 9 file listings/nondet_static.c line 1
+      ASSIGN counter := side_effect statement="nondet" is_nondet_nullable="1"
+$ rm nondet_static.goto nondet_static.instr.goto
+```
+

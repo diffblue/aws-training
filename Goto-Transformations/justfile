@@ -31,3 +31,13 @@ remove-complex:
 
 adjust-float-expressions:
     {{bin}}cbmc --show-goto-functions listings/float_demo.c | tail -27
+
+nondet-static:
+    {{bin}}goto-cc -o nondet_static.goto nondet_static.c
+    {{bin}}cbmc nondet_static.goto
+    {{bin}}goto-instrument --nondet-static nondet_static.goto nondet_static.instr.goto
+    -{{bin}}cbmc nondet_static_instr.goto
+    {{bin}}goto-inspect --show-goto-functions nondet_static.goto
+    {{bin}}goto-inspect --show-goto-functions nondet_static.instr.goto
+    rm nondet_static.goto nondet_static_instr.goto
+    
