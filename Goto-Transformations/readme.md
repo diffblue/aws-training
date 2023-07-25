@@ -216,6 +216,37 @@ This operation also has a dual in the form of `restore_returns()`
 
 ### Remove/Lower Vector Typed Expressions
 
+This pass removes types that represent vectors created by compiler intrinsics
+for AVX, SSE and MMX instruction set extensions. It does so by translating corresponding
+vector operations into array operations:
+
+```
+// original
+vector x;
+vector y;
+vector z = x + y;
+
+// transformed
+array x[32];
+array y[32];
+array z[32] = [x[0] + y[0], x[1] + y[1], x[2] + y[2], ...]
+```
+
+As an example, consider the file [`remove_vector.c`](listings/remove_vector.c).
+
+We're going to ask CBMC to show us the goto-functions for this particular example:
+
+```sh
+$ binaries/cbmc --show-goto-functions listings/remove_vector.c
+[...]
+DECL main::1::a : signedbv[32][4]
+ASSIGN main::1::a := { 1, 2, 3, 4 }
+DECL main::1::b : signedbv[32][4]
+ASSIGN main::1::b := { 5, 6, 7, 8 }
+DECL main::1::c : signedbv[32][4]
+ASSIGN main::1::c := { main::1::a[0] + main::1::b[0], main::1::a[1] + main::1::b[1], main::1::a[2] + main::1::b[2], main::1::a[3] + main::1::b[3] }
+```
+
 ### Remove/Lower Complex Typed Expression
 
 Removes complex numbers by turning them into struct types.
