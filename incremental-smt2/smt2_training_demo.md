@@ -10,6 +10,8 @@
 
 ## Interactivity requirements
 
+- The training materials (including this slide).
+   https://github.com/diffblue/aws-training
 - Recent version of CBMC (version 5.88.0).
    https://github.com/diffblue/cbmc/releases
 - Recent version of Z3 (4.10.2) (`apt` on ubuntu may be outdated).
