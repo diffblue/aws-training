@@ -3,7 +3,6 @@
 ## Table of Contents
 
 TODO: Focus on most important stuff (no mmio).
-TODO: Add link to implementation.
 
 1. [Introduction](##Introduction)
 2. [Symex-Ready Goto Transformations](##"Symex-Ready\ Goto\ Transformations")
@@ -31,6 +30,8 @@ These transformations have a sequencing dependency, and they are presented
 here in the order in which they are performed:
 
 ### Remove Assembly
+
+> Implementation in `src/assembler/remove_asm.cpp`
 
 This transformation detects code blocks containing `inline asm` and rewrites
 the assembly instructions into `goto-instructions` that have the same semantics.
@@ -64,6 +65,8 @@ $ cbmc --show-goto-functions listings/remove_asm.c
 
 ### Linking to standard libraries
 
+> Implementation in `src/goto-programs/link_to_library.cpp`
+
 This transformation is looking for function calls inside the goto-program,
 where the body of the function is missing and searches the CPROVER library
 (under `src/ansi-c/library/`) for a function matching the signature and includes
@@ -85,6 +88,8 @@ double (double d)
 ```
 
 ### Remove Function Pointers
+
+> Implementation in `src/goto-programs/remove_function_pointers.cpp`
 
 This transformation detects function calls of a dereferenced pointer, and at
 that point, it looks up all possible targets of the pointer dereference (it
@@ -130,6 +135,8 @@ and it works in pretty much the expected way:
 
 ### Instrument preconditions
 
+> Implementation in `src/goto-programs/instrument_preconditions.cpp`
+
 This transformation is moving function preconditions (which are in the form
 of `__CPROVER_precondition`s in the first few instructions of the function body)
 before call sites of the functions that are instrumented.
@@ -167,6 +174,8 @@ After it has done so for every function, the it iterates through the function ma
 again, finding any functions containing preconditions, and removing them.
 
 ### Remove Returns
+
+> Implementation in `src/goto-programs/remove_returns.cpp`
 
 This transformation eliminates return statements from the program, and in their
 place it substitutes for reads/writes to global variables. The transformation
@@ -216,6 +225,8 @@ This operation also has a dual in the form of `restore_returns()`
 
 ### Remove/Lower Vector Typed Expressions
 
+> Implementation in `src/goto-programs/remove_vector.cpp`
+
 This pass removes types that represent vectors created by compiler intrinsics
 for AVX, SSE and MMX instruction set extensions. It does so by translating corresponding
 vector operations into array operations:
@@ -249,6 +260,8 @@ ASSIGN main::1::c := { main::1::a[0] + main::1::b[0], main::1::a[1] + main::1::b
 
 ### Remove/Lower Complex Typed Expression
 
+> Implementation in `src/goto-programs/remove_complex.cpp`
+
 Removes complex numbers by turning them into struct types.
 
 As an example, consider:
@@ -279,6 +292,8 @@ ASSERT ... ieee_float_equal(main::1::c.imag, ...
 ```
 
 ### Rewrite Unions
+
+> Implementation in `src/goto-programs/rewrite_union.cpp`
 
 This transformation rewrites union member reads as `byte_extract` expressions
 and union member writes as `byte_update` expressions. So for code like:
@@ -313,6 +328,8 @@ to symex (with `byte_update`).
 
 ### goto_check_c
 
+> Implementation in `src/ansi-c/goto_check_c.cpp`
+
 This is actually a series of transformations relating to C style language semantics.
 A lot of the instrumentations added by a flag are introduced at this point, after
 checking if the flag has been set up appropriately (`bounds-check`, `enum-range-check`,
@@ -335,6 +352,8 @@ $ rm no_instr.goto.txt instr.goto.txt
 ```
 
 ### Adjust Float Expressions
+
+> Implementation in `src/goto-programs/adjust_float_expressions.cpp`
 
 This transforms operations applied to floating-point values in the program into
 floating-point-specific operations (`ID_plus` -> `float_bv_plus`), which are
@@ -363,6 +382,8 @@ ASSIGN main::1::c := floatbv_plus(main::1::a, main::1::b, __CPROVER_rounding_mod
 
 ### Goto Functions Update
 
+> Implementation in `src/goto-programs/goto_functions.cpp`
+
 This transformation re-adjusts missing/invalidated fields on `goto-functions`
 that need to be changed as a result of previous transformations.
 
@@ -375,6 +396,8 @@ Isn't amenable to easy demoing without trying to bring CBMC into a semi-crippled
 basis, so we're going to skip a demo for this one.
 
 ### Add Failed Symbols
+
+> Implementation in `src/pointer-analysis/add_failed_symbol.cpp`
 
 A failed symbol is a pointer dereference at an lvalue position, for which we do
 not have adequate information to determine who the pointee is. We use failed symbols
@@ -422,6 +445,8 @@ for which we get:
 
 ### Remove Skip Instructions
 
+> Implementation in `src/goto-programs/remove_skip.cpp`
+
 This transformation is removing `SKIP` instructions at the GOTO level. These are
 usually the outcome of some other transformations eliminating some instructions.
 
@@ -430,6 +455,8 @@ instructions, which are instructions semantically equivalent to `SKIP`s, but pre
 after various transformations in the program text.
 
 ### Label Properties
+
+> Implementation in `src/goto-programs/set_properties.cpp`
 
 This transformation is responsible operates only on `ASSERT` instructions,
 and is responsible for setting up the identifiers of the various assertions
