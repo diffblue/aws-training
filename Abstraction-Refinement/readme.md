@@ -39,7 +39,9 @@ void main()
 ```
 
 Bit-blast arrays: `time cbmc refine-arrays.c --arrays-uf-never`
+
 Use eager array theory: `time cbmc refine-arrays.c --arrays-uf-always`
+
 Use lazy array theory: `time cbmc refine-arrays.c --arrays-uf-always --refine-arrays`
 
 Bug to fix: Refine arrays can actually use simplifier.
@@ -71,7 +73,8 @@ void main()
 ```
 
 Without abstraction: `time cbmc refine-arithmetic.c`
-with abstraction: `time cbmc refine-arithmetic.c --refine-arithmetic`
+
+With abstraction: `time cbmc refine-arithmetic.c --refine-arithmetic`
 
 Similar ideas in http://www.kroening.com/papers/sttt-bv-2008.pdf.
 
@@ -129,5 +132,7 @@ void main()
 ```
 
 Without incremental unwinding: `cbmc incremental-loop.c --unwinding-assertions --unwind 10`
+
 Figuring out the loop id: `cbmc incremental-loop.c --show-loops`
+
 With incremental unwinding: `cbmc incremental-loop.c --unwinding-assertions --incremental-loop main.0`
