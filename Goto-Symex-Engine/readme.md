@@ -24,23 +24,26 @@ at the time when `cbmc-5.88.0` was released.
 Goto-symex transforms a Goto model into SSA.
 
 Input:
-https://diffblue.github.io/cbmc/classgoto__modelt.html
-https://diffblue.github.io/cbmc/classgoto__programt_1_1instructiont.html
+- https://diffblue.github.io/cbmc/classgoto__modelt.html
+- https://diffblue.github.io/cbmc/classgoto__programt_1_1instructiont.html
 
 Output:
-https://diffblue.github.io/cbmc/classsymex__targett.html
-https://diffblue.github.io/cbmc/classsymex__target__equationt.html
+- https://diffblue.github.io/cbmc/classsymex__targett.html
+- https://diffblue.github.io/cbmc/classsymex__target__equationt.html
 
 This transformation performs
 - removal of side effects
 - control flow encoding into guards
 - bounded unwinding of loops and recursions
 - concurrency encoding for threads
+
 I.e. bounded abstract interpretation of the Goto model (CFG) with
 product domain of 
+- computing control flow guards
 - collecting SSA equations
 - constant propagation 
 - may-points-to.
+
 The code for that is mostly in the `goto-symex` module.
 
 SSA is then converted to a first-order logic formula (see `solvers` module).
@@ -131,6 +134,7 @@ Variable naming: `cbmc unwinding.c --unwinding-assertions --unwind 4 --show-vcc 
 Details of symex: `cbmc unwinding.c --unwinding-assertions --unwind 4 --show-vcc | less`
 
 https://diffblue.github.io/cbmc/classgoto__symex__statet.html
+
 https://diffblue.github.io/cbmc/classrenamedt.html
 
 ## CFG exploration
@@ -143,8 +147,11 @@ Worklist algorithm:
 4. Repeat from 1
 
 https://diffblue.github.io/cbmc/classgoto__symext.html
+
 https://diffblue.github.io/cbmc/symex__main_8cpp.html
+
 https://diffblue.github.io/cbmc/classgoto__symex__statet.html
+
 https://diffblue.github.io/cbmc/symex__goto_8cpp.html
 
 ### Multi-path
@@ -152,6 +159,7 @@ https://diffblue.github.io/cbmc/symex__goto_8cpp.html
 Explores if before else and loop iterations before loop exit.
 
 `cbmc branching.c --show-goto-functions`
+
 `cbmc branching.c --show-vcc`
 
 ### Single-path
@@ -187,15 +195,15 @@ Properties hold? `cbmc loop.c`
 With constant propagation: `cbmc loop.c --program-only`
 
 Without constant propagation: 
-`cbmc loop.c --program-only --no-propagation`
-`cbmc loop.c --program-only --no-propagation --unwind 5`
+- `cbmc loop.c --program-only --no-propagation`
+- `cbmc loop.c --program-only --no-propagation --unwind 5`
 
 Inability to propagate: change upper bound of `value` to `43`:
-`cbmc loop.c --program-only`
+- `cbmc loop.c --program-only`
 
 Inability to propagate and determine unwinding bound: change upper bound of `bound` to `4`:
-`cbmc loop.c --program-only`
-`cbmc loop.c --program-only --unwind 5`
+- `cbmc loop.c --program-only`
+- `cbmc loop.c --program-only --unwind 5`
 
 https://diffblue.github.io/cbmc/classgoto__statet.html
 
@@ -204,17 +212,17 @@ https://diffblue.github.io/cbmc/classgoto__statet.html
 Original `loop.c` example.
 
 Without simplification:
-`cbmc loop.c --program-only --no-simplify`
-`cbmc loop.c --program-only --no-simplify --unwind 5`
+- `cbmc loop.c --program-only --no-simplify`
+- `cbmc loop.c --program-only --no-simplify --unwind 5`
 
 https://diffblue.github.io/cbmc/simplify__expr_8h.html
 
 ## Symbolic dereferencing
 
 Uses may-points-to analysis information ("value sets").
-https://diffblue.github.io/cbmc/classvalue__set__dereferencet.html
-https://diffblue.github.io/cbmc/classvalue__sett.html
-https://diffblue.github.io/cbmc/classgoto__statet.html
+- https://diffblue.github.io/cbmc/classvalue__set__dereferencet.html
+- https://diffblue.github.io/cbmc/classvalue__sett.html
+- https://diffblue.github.io/cbmc/classgoto__statet.html
 
 Example:
 ```
@@ -242,7 +250,7 @@ Symbolic dereferencing: `cbmc dereference.c --show-vcc --no-propagation`
 ## Dynamic memory allocation
 
 Create "dynamic object" for each executed `malloc()`.
-https://diffblue.github.io/cbmc/stdlib_8c_source.html#l00168
+- https://diffblue.github.io/cbmc/stdlib_8c_source.html#l00168
 
 Example:
 ```
@@ -289,7 +297,7 @@ Symbolic dereferencing: `cbmc dynamic.c --property main.assertion.3 --show-vcc`
 ## Function pointers
 
 Handled by goto transformation.
-https://diffblue.github.io/cbmc/remove__function__pointers_8h.html
+- https://diffblue.github.io/cbmc/remove__function__pointers_8h.html
 
 Example:
 ```
@@ -344,11 +352,10 @@ void main()
 ```
 
 Simple slice (default): `cbmc slice.c --show-vcc`
-https://diffblue.github.io/cbmc/slice_8h.html `simple_slice()`
+- https://diffblue.github.io/cbmc/slice_8h.html `simple_slice()`
 
 Slice wrt assertion: `cbmc slice.c --show-vcc --slice-formula`
-https://diffblue.github.io/cbmc/slice_8h.html `slice()`
-May be buggy.
+- https://diffblue.github.io/cbmc/slice_8h.html `slice()`
 
 Other slicers (not covered here, see `goto-instrument` module, may be buggy):
 - reachability slice 
@@ -366,8 +373,8 @@ https://diffblue.github.io/cbmc/classgoto__verifiert.html
 
 - verification of a goto model
 - defines behaviour on finding a property violation
--- property status reporting
--- trace reporting
+  - property status reporting
+  - trace reporting
 - uses an incremental goto checker (typically inside a loop)
 
 Implementations:
