@@ -576,6 +576,68 @@ $ binaries/goto-inspect --show-goto-functions nondet_static.instr.goto
 __CPROVER_initialize /* __CPROVER_initialize */
       // 9 file listings/nondet_static.c line 1
       ASSIGN counter := side_effect statement="nondet" is_nondet_nullable="1"
+
 $ rm nondet_static.goto nondet_static.instr.goto
 ```
 
+## `--malloc-may-fail`
+
+By default, CBMC's `malloc` model will not fail. This is in contrast to
+allocations on an actual system, where `malloc` can fail. So how do we
+bridge this discrepancy if we want to model a system more realistically?
+
+`goto-instrument` and `cbmc` have a series of flags that enable modelling
+`malloc` potentially failing, along with the behaviour of failure mode.
+
+Let's have a look:
+
+```c
+#include <stdlib.h>
+
+int main()
+{
+    int *a = malloc(sizeof(int));
+    __CPROVER_assert(a != NULL, "can fail");
+    *a = 5;
+    __CPROVER_assert(*a == 5, "expected a to be 5");
+}
+
+```
+
+By default, `cbmc` would be pretty sure that this assertion can't be
+violated:
+
+```sh
+$ binaries/cbmc listings/malloc_fail.c
+[...]
+** Results:
+<builtin-library-malloc> function malloc
+[malloc.assertion.1] line 31 max allocation size exceeded: SUCCESS
+[malloc.assertion.2] line 36 max allocation may fail: SUCCESS
+
+listings/malloc_fail.c function main
+[main.assertion.1] line 6 can fail: SUCCESS
+[main.assertion.2] line 8 expected a to be 5: SUCCESS
+
+** 0 of 4 failed (1 iterations)
+VERIFICATION SUCCESSFUL
+```
+
+What happens if we instrument a program with intrinsics that hint that
+malloc can fail instead?
+
+```sh
+$ binaries/cbmc --malloc-may-fail --malloc-fail-null listings/malloc_fail.c
+[...]
+** Results:
+<builtin-library-malloc> function malloc
+[malloc.assertion.1] line 31 max allocation size exceeded: SUCCESS
+[malloc.assertion.2] line 36 max allocation may fail: SUCCESS
+
+listings/malloc_fail.c function main
+[main.assertion.1] line 6 can fail: FAILURE
+[main.assertion.2] line 8 expected a to be 5: SUCCESS
+
+** 1 of 4 failed (2 iterations)
+VERIFICATION FAILED
+```

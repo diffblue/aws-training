@@ -41,3 +41,6 @@ nondet-static:
     {{bin}}goto-inspect --show-goto-functions nondet_static.instr.goto
     rm nondet_static.goto nondet_static_instr.goto
     
+malloc-may-fail:
+    {{bin}}cbmc listings/malloc_fail.c
+    {{bin}}cbmc --malloc-may-fail --malloc-fail-null listings/malloc_fail.c
