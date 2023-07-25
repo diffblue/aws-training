@@ -110,9 +110,7 @@ Let's have a look at a live demo of this: [`remove_function_pointers.c`](listing
 Let's examine the `goto-functions` produced by `cbmc`:
 
 ```sh
-$ just --show remove-function-pointers
-[...]
-$ just remove-function-pointers
+$ binaries/cbmc --show-goto-functions listings/remove_function_pointers.c | tail -26
 [...]
 ```
 
@@ -157,9 +155,7 @@ int main()
 ```
 
 ```sh
-$ just --show instrument-preconditions
-[...]
-$ just instrument-preconditons
+$ cbmc --show-goto-functions listings/instrument_precond.c | tail -39
 [...]
 ```
 
@@ -243,7 +239,7 @@ int main()
 which is turned into
 
 ```sh
-$ just remove-complex
+$ cbmc --show-goto-functions listings/complex.c | tail -17
 [...]
 DECL main::1::c : struct { floatbv[64] real, floatbv[64] imag }
 ASSIGN main::1::c := { ... 1.0, ... 2 }
@@ -294,10 +290,9 @@ checking if the flag has been set up appropriately (`bounds-check`, `enum-range-
 Let's have a look at an instrumentation added this way:
 
 ```sh
-$ just --show goto-checkc-div-zero
-[...]
-$ just goto-checkc-div-zero
-[...]
+$ binaries/cbmc --show-goto-functions listings/div_zero.c > no_instr.goto.txt
+$ binaries/cbmc --div-by-zero-check --show-goto-functions listings/div_zero.c > instr.goto.txt
+$ diff no_instr.goto.txt instr.goto.txt
 42a43,44
 >         ASSERT ¬(*div::b = 0) // division by zero in *a / *b
 >         // 17 file listings/div_zero.c line 3 function div
@@ -305,6 +300,7 @@ $ just goto-checkc-div-zero
 <         // 17 file listings/div_zero.c line 4 function div
 ---
 >         // 18 file listings/div_zero.c line 4 function div
+$ rm no_instr.goto.txt instr.goto.txt
 ```
 
 ### Adjust Float Expressions
@@ -328,7 +324,7 @@ int main()
 Would have the `+` operator between the two float operands transformed into:
 
 ```sh
-$ just adjust-float-expressions
+$ binaries/cbmc --show-goto-functions listings/float_demo.c | tail -27
 [...]
 ASSIGN main::1::c := floatbv_plus(main::1::a, main::1::b, __CPROVER_rounding_mode)
 [...]
@@ -350,7 +346,9 @@ basis, so we're going to skip a demo for this one.
 ### Add Failed Symbols
 
 A failed symbol is a pointer dereference at an lvalue position, for which we do
-not have adequate information to determine who the pointee is.
+not have adequate information to determine who the pointee is. We use failed symbols
+so that we nondet the result of the dereference instead of the whole memory in that
+case.
 
 Doesn't lend itself to easy demoing, as we can't demonstrate failed symbols in a user
 friendly manner, as this information is attached to the type of the symbol, for
