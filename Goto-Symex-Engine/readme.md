@@ -9,11 +9,12 @@ We're going to look at:
 2. Variable generations
 3. CFG exploration
 4. Constant propagation
-5. Symbolic dereferencing
-6. Dynamic memory allocation
-7. Function pointers
-8. Slicing
-9. Goto verifiers and incremental goto checkers
+5. Expression simplification
+6. Symbolic dereferencing
+7. Dynamic memory allocation
+8. Function pointers
+9. Slicing
+10. Goto verifiers and incremental goto checkers
 
 All of the tools that we are demoing today have been built out of `develop`
 at the time when `cbmc-5.88.0` was released.
@@ -177,6 +178,14 @@ Inability to propagate: change upper bound of `value` to `43`:
 Inability to propagate and determine unwinding bound: change upper bound of `bound` to `4`:
 `cbmc loop.c --program-only`
 `cbmc loop.c --program-only --unwind 5`
+
+## Expression simplification
+
+Original `loop.c` example.
+
+Without simplification:
+`cbmc loop.c --program-only --no-simplify`
+`cbmc loop.c --program-only --no-simplify --unwind 5`
 
 ## Symbolic dereferencing
 
