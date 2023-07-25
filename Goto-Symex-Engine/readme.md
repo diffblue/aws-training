@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a live tutorial on how Goto-symex processes a Goto program.
+This is a live tutorial on how Goto-symex processes a Goto model from an entry point.
 We're going to look at:
 
 1. Symex target equation (SSA)
@@ -21,19 +21,29 @@ at the time when `cbmc-5.88.0` was released.
 
 ## Symex target equation (SSA)
 
-Goto-symex transforms a Goto program into SSA.
+Goto-symex transforms a Goto model into SSA.
+
+Input:
+https://diffblue.github.io/cbmc/classgoto__modelt.html
+https://diffblue.github.io/cbmc/classgoto__programt_1_1instructiont.html
+
+Output:
+https://diffblue.github.io/cbmc/classsymex__targett.html
+https://diffblue.github.io/cbmc/classsymex__target__equationt.html
+
 This transformation performs
 - removal of side effects
 - control flow encoding into guards
 - bounded unwinding of loops and recursions
 - concurrency encoding for threads
-I.e. bounded abstract interpretation of the Goto program (CFG) with
+I.e. bounded abstract interpretation of the Goto model (CFG) with
 product domain of 
 - collecting SSA equations
 - constant propagation 
 - may-points-to.
+The code for that is mostly in the `goto-symex` module.
 
-SSA is then translated to a first-order logic formula.
+SSA is then converted to a first-order logic formula (see `solvers` module).
 
 Example:
 ```
@@ -52,7 +62,7 @@ void main()
 }
 ```
 
-Goto program representation: `cbmc branching.c --show-goto-functions`
+Goto model representation: `cbmc branching.c --show-goto-functions`
 
 SSA representation: `cbmc branching.c --program-only`
 
@@ -120,6 +130,9 @@ Variable naming: `cbmc unwinding.c --unwinding-assertions --unwind 4 --show-vcc 
 
 Details of symex: `cbmc unwinding.c --unwinding-assertions --unwind 4 --show-vcc | less`
 
+https://diffblue.github.io/cbmc/classgoto__symex__statet.html
+https://diffblue.github.io/cbmc/classrenamedt.html
+
 ## CFG exploration
 
 Worklist algorithm: 
@@ -128,6 +141,11 @@ Worklist algorithm:
 2. process element
 3. put successors into worklist
 4. Repeat from 1
+
+https://diffblue.github.io/cbmc/classgoto__symext.html
+https://diffblue.github.io/cbmc/symex__main_8cpp.html
+https://diffblue.github.io/cbmc/classgoto__symex__statet.html
+https://diffblue.github.io/cbmc/symex__goto_8cpp.html
 
 ### Multi-path
 
@@ -179,6 +197,8 @@ Inability to propagate and determine unwinding bound: change upper bound of `bou
 `cbmc loop.c --program-only`
 `cbmc loop.c --program-only --unwind 5`
 
+https://diffblue.github.io/cbmc/classgoto__statet.html
+
 ## Expression simplification
 
 Original `loop.c` example.
@@ -187,9 +207,14 @@ Without simplification:
 `cbmc loop.c --program-only --no-simplify`
 `cbmc loop.c --program-only --no-simplify --unwind 5`
 
+https://diffblue.github.io/cbmc/simplify__expr_8h.html
+
 ## Symbolic dereferencing
 
 Uses may-points-to analysis information ("value sets").
+https://diffblue.github.io/cbmc/classvalue__set__dereferencet.html
+https://diffblue.github.io/cbmc/classvalue__sett.html
+https://diffblue.github.io/cbmc/classgoto__statet.html
 
 Example:
 ```
@@ -217,6 +242,7 @@ Symbolic dereferencing: `cbmc dereference.c --show-vcc --no-propagation`
 ## Dynamic memory allocation
 
 Create "dynamic object" for each executed `malloc()`.
+https://diffblue.github.io/cbmc/stdlib_8c_source.html#l00168
 
 Example:
 ```
@@ -263,6 +289,7 @@ Symbolic dereferencing: `cbmc dynamic.c --property main.assertion.3 --show-vcc`
 ## Function pointers
 
 Handled by goto transformation.
+https://diffblue.github.io/cbmc/remove__function__pointers_8h.html
 
 Example:
 ```
@@ -317,18 +344,27 @@ void main()
 ```
 
 Simple slice (default): `cbmc slice.c --show-vcc`
-Formula slice: `cbmc slice.c --show-vcc --slice-formula`
+https://diffblue.github.io/cbmc/slice_8h.html `simple_slice()`
 
-Other slicers (not covered here):
+Slice wrt assertion: `cbmc slice.c --show-vcc --slice-formula`
+https://diffblue.github.io/cbmc/slice_8h.html `slice()`
+May be buggy.
+
+Other slicers (not covered here, see `goto-instrument` module, may be buggy):
 - reachability slice 
 - full slice
-- aggressve slice
+- aggressive slice
 
 ## Goto verifiers and incremental goto checkers
 
+`goto-checker` module: provides algorithms for using `goto-symex` on a
+Goto model.
+
 ### Goto verifier
 
-- verification of a goto program
+https://diffblue.github.io/cbmc/classgoto__verifiert.html
+
+- verification of a goto model
 - defines behaviour on finding a property violation
 -- property status reporting
 -- trace reporting
@@ -342,8 +378,10 @@ Implementations:
 
 ### Incremental goto checker
 
+https://diffblue.github.io/cbmc/classincremental__goto__checkert.html
+
 - incremental verification until the next property violation
-- defines how this verification is done
+- defines how this verification is done (e.g. using Goto symex in a particular way)
 
 Implementations:
 - Default in CBMC: `multi_path_symex_checkert`
