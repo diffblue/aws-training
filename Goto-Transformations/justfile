@@ -44,3 +44,18 @@ nondet-static:
 malloc-may-fail:
     {{bin}}cbmc listings/malloc_fail.c
     {{bin}}cbmc --malloc-may-fail --malloc-fail-null listings/malloc_fail.c
+
+generate-function-body:
+    {{bin}}cbmc listings/generate_function_body | grep WARNING
+    {{bin}}goto-cc -o funcbody.goto listings/generate_function_body.c
+    echo "First function body generation" && sleep 1
+    {{bin}}goto-instrument --generate-function-body forbidden funcbody.goto funcbody.instr.goto
+    {{bin}}goto-inspect --show-goto-functions funcbody.instr.goto
+    {{bin}}cbmc funcbody.instr.goto
+    echo "Second function body generation" && sleep 1
+    {{bin}}goto-instrument --generate-function-body forbidden --generate-function-body-options assume-false funcbody.goto funcbody.instr.goto
+    {{bin}}cbmc funcbody.instr.goto
+    echo "Third function body generation" && sleep 1
+    {{bin}}goto-instrument --generate-function-body forbidden --generate-function-body-options assert-false funcbody.goto funcbody.instr.goto
+    {{bin}}cbmc funcbody.instr.goto
+    rm funcbody.goto funcbody.instr.goto

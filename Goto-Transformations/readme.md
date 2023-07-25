@@ -2,8 +2,6 @@
 
 ## Table of Contents
 
-TODO: Focus on most important stuff (no mmio).
-
 1. [Introduction](##Introduction)
 2. [Symex-Ready Goto Transformations](##"Symex-Ready\ Goto\ Transformations")
 3. [Goto-Instrument Transformations](##"Goto Instrument Transformations")
@@ -11,7 +9,7 @@ TODO: Focus on most important stuff (no mmio).
 ## Introduction
 
 This is a live tutorial on transformations applied to the Goto program by
-various tools in our suite of tools. We're going to look:
+various tools in our suite of tools. We're going to look at:
 
 1. Symex-Ready Goto Transformations,
 2. (Optional) Transformations applied by `cbmc`, and
@@ -580,7 +578,7 @@ __CPROVER_initialize /* __CPROVER_initialize */
 $ rm nondet_static.goto nondet_static.instr.goto
 ```
 
-## `--malloc-may-fail`
+### `--malloc-may-fail`
 
 By default, CBMC's `malloc` model will not fail. This is in contrast to
 allocations on an actual system, where `malloc` can fail. So how do we
@@ -639,5 +637,124 @@ listings/malloc_fail.c function main
 [main.assertion.2] line 8 expected a to be 5: SUCCESS
 
 ** 1 of 4 failed (2 iterations)
+VERIFICATION FAILED
+```
+
+### `--generate-function-body`
+
+`goto-instrument` has the capability to produce a function body for
+a given function to assist with modelling, with the behaviour allowable
+being nondeterministically returning a value, asserting false, assuming
+false, and havocing a parameter.
+
+Assume that we're given the following code:
+
+```c
+int forbidden(int x);
+
+int main() {
+    int x = 4;
+    int y = forbidden(y);
+
+    __CPROVER_assert(y != 5, "should never be 5");
+}
+```
+
+A normal CBMC run with this file would produce a warning:
+
+```sh
+$ binaries/cmbc listings/generate_function_body.c
+CBMC version 5.88.0 (cbmc-5.88.0) 64-bit arm64 macos
+Reading GOTO program from file funcbody.goto
+Generating GOTO Program
+Adding CPROVER library (arm64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 8 object bits, 56 offset bits (default)
+Starting Bounded Model Checking
+**** WARNING: no body for function addone
+[...]
+```
+
+Let's see how we could go about changing that:
+
+```sh
+$ binaries/goto-cc -o funcbody.goto listings/generate_function_body.c
+
+$ binaries/goto-inspect --show-goto-functions funcbody.goto
+<confirms no body for forbidden>
+```
+
+Let's instrument this file to ask for a body for forbiddent to be
+generated:
+
+```sh
+$ binaries/goto-instrument --generate-function-body forbidden funcbody.goto funcbody.instr.goto
+
+$ binaries/goto-inspect --show-goto-functions funcbody.instr.goto
+[...]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+forbidden /* forbidden */
+        // 12 file listings/generate_function_body.c line 1 function forbidden
+        DECL forbidden::return_value : signedbv[32]
+        // 13 file listings/generate_function_body.c line 1 function forbidden
+        ASSIGN forbidden::return_value := side_effect statement="nondet" is_nondet_nullable="1"
+        // 14 file listings/generate_function_body.c line 1 function forbidden
+        SET RETURN VALUE forbidden::return_value
+        // 15 file listings/generate_function_body.c line 1 function forbidden
+        DEAD forbidden::return_value
+        // 16 file listings/generate_function_body.c line 1 function forbidden
+        END_FUNCTION
+[...]
+```
+
+Let's have a look at how analysis results have changed for this file:
+
+```sh
+$ binaries/cbmc funcbody.instr.goto
+[...]
+** Results:
+listings/generate_function_body.c function main
+[main.assertion.1] line 7 should never be 5: FAILURE
+
+** 1 of 1 failed (2 iterations)
+VERIFICATION FAILED
+```
+
+Let's now see what happens if we change the function body generator's
+behaviour, and ask instead for an `assume(false)` to be in the function's
+generated body:
+
+```sh
+$ binaries/goto-instrument --generate-function-body forbidden --generate-function-body-options assume-false funcbody.goto funcbody.instr.goto
+
+$ binaries/cbmc funcbody.instr.goto
+[...]
+** Results:
+listings/generate_function_body.c function main
+[main.assertion.1] line 7 should never be 5: SUCCESS
+
+** 0 of 1 failed (1 iterations)
+VERIFICATION SUCCESSFUL
+```
+
+We now see that the `assume(false)` has wreaked havoc on our search space,
+causing the assertions that follow that code point to be vacuously true.
+
+Let's see how analysis changes for a different behaviour:
+
+```sh
+$ binaries/goto-instrument --generate-function-body forbidden --generate-function-body-options assert-false funcbody.goto funcbody.instr.goto
+
+$ binaries/cbmc funcbody.instr.goto
+** Results:
+listings/generate_function_body.c function forbidden
+[forbidden.assertion.1] line 1 undefined function should be unreachable: FAILURE
+
+listings/generate_function_body.c function main
+[main.assertion.1] line 7 should never be 5: FAILURE
+
+** 2 of 2 failed (3 iterations)
 VERIFICATION FAILED
 ```
