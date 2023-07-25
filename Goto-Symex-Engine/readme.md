@@ -10,9 +10,10 @@ We're going to look at:
 3. CFG exploration
 4. Constant propagation
 5. Symbolic dereferencing
-6. Function pointers
-7. Slicing
-8. Goto verifiers and incremental goto checkers
+6. Dynamic memory allocation
+7. Function pointers
+8. Slicing
+9. Goto verifiers and incremental goto checkers
 
 All of the tools that we are demoing today have been built out of `develop`
 at the time when `cbmc-5.88.0` was released.
@@ -51,7 +52,9 @@ void main()
 ```
 
 Goto program representation: `cbmc branching.c --show-goto-functions`
+
 SSA representation: `cbmc branching.c --program-only`
+
 Per-assertion SSA representation: `cbmc branching.c --show-vcc`
 
 ## Variable generations
@@ -110,11 +113,11 @@ void main()
 }
 ```
 
-`cbmc unwinding.c --unwinding-assertions --unwind 4`
+Properties hold? `cbmc unwinding.c --unwinding-assertions --unwind 4`
 
-`cbmc unwinding.c --unwinding-assertions --unwind 4 --show-vcc | grep current | less`
+Variable naming: `cbmc unwinding.c --unwinding-assertions --unwind 4 --show-vcc | grep current | less`
 
-`cbmc unwinding.c --unwinding-assertions --unwind 4 --show-vcc | less`
+Details of symex: `cbmc unwinding.c --unwinding-assertions --unwind 4 --show-vcc | less`
 
 ## CFG exploration
 
@@ -160,7 +163,7 @@ void main()
 }
 ```
 
-`cbmc loop.c`
+Properties hold? `cbmc loop.c`
 
 With constant propagation: `cbmc loop.c --program-only`
 
@@ -198,8 +201,55 @@ void main()
 }
 ```
 
-`cbmc dereference.c`
-`cbmc dereference.c --show-vcc --no-propagation`
+Property holds? `cbmc dereference.c`
+
+Symbolic dereferencing: `cbmc dereference.c --show-vcc --no-propagation`
+
+## Dynamic memory allocation
+
+Create "dynamic object" for each executed `malloc()`.
+
+Example:
+```
+struct list
+{
+  int x;
+  struct list *next;
+};
+
+void main()
+{
+  struct list *p = 0;
+  for (int i=0; i<5; ++i)
+  {
+    int c;
+    if (c) break;
+    struct list *n = malloc(sizeof(struct list));
+    n->next = p;
+    n->x = i;
+    p = n;
+  }
+  
+  assert(!(p == 0));
+  assert(!(p != 0));
+  
+  __CPROVER_assume(p != 0);
+  int x = p->x;
+  assert(!(x == 0));
+  assert(!(x == 1));
+  assert(!(x == 2));
+  assert(!(x == 3));
+  assert(!(x == 4));
+  assert(!(x == 5));
+}
+```
+
+Which properties hold? `cbmc dynamic.c`
+
+How is malloc lowered? `cbmc dynamic.c --property main.assertion.1 --show-vcc | less`
+
+Symbolic dereferencing: `cbmc dynamic.c --property main.assertion.3 --show-vcc`
+
 
 ## Function pointers
 
@@ -232,7 +282,7 @@ void main()
 }
 ```
 
-`cbmc function-pointers.c --show-goto-functions`
+Encoding: `cbmc function-pointers.c --show-goto-functions`
 
 ## Slicing
 
