@@ -25,16 +25,16 @@ struct STRUCT
 
 void main()
 {
-  struct STRUCT s;
-  s.a = 1;
-  s.b = s.a;
-  s.c = s.b;
-  s.d = s.c;
-  s.e = s.d;
-  s.f = s.e;
-  s.g = s.f;
-  s.h = s.g;
-  assert(s.a != s.h);
+  struct STRUCT x;
+  x.a = 1;
+  x.b = x.a;
+  x.c = x.b;
+  x.d = x.c;
+  x.e = x.d;
+  x.f = x.e;
+  x.g = x.f;
+  x.h = x.g;
+  assert(x.a != x.h);
 }
 ```
 
@@ -68,7 +68,7 @@ void main()
 
   for(int i=1; i<SIZE; ++i)
   {
-    x[i-1] = x[i];
+    x[i] = x[i-1];
   }
 
   assert(x[SIZE-1] != 1);
