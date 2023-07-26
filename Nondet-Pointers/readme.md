@@ -214,3 +214,5 @@ void main()
 ```
 
 `cbmc nondet_pointers.c`
+
+https://github.com/diffblue/cbmc/pull/6326/files
