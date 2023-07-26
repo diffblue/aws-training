@@ -18,16 +18,15 @@ void assume_r_ok()
   assert(__CPROVER_r_ok(heap));
   assert(!__CPROVER_r_ok(invalid));
   
-  __CPROVER_assume(__CPROVER_r_ok(null));
+  //__CPROVER_assume(__CPROVER_r_ok(null)); // false
   __CPROVER_assume(__CPROVER_r_ok(nondet));
   __CPROVER_assume(__CPROVER_r_ok(constant));
   __CPROVER_assume(__CPROVER_r_ok(stack, 5));
   __CPROVER_assume(__CPROVER_r_ok(heap));
-  __CPROVER_assume(__CPROVER_r_ok(invalid));
+  //__CPROVER_assume(__CPROVER_r_ok(invalid)); // false
 
   assert(!__CPROVER_r_ok(null));
-  assert(__CPROVER_r_ok(nondet)); // ?
-  assert(!__CPROVER_r_ok(nondet)); // ?
+  assert(__CPROVER_r_ok(nondet));
   assert(__CPROVER_r_ok(constant));
   assert(__CPROVER_r_ok(stack, 5));
   assert(__CPROVER_r_ok(heap));
@@ -35,7 +34,6 @@ void assume_r_ok()
 
   assert(!__CPROVER_w_ok(null));
   assert(__CPROVER_w_ok(nondet)); // ?
-  assert(!__CPROVER_w_ok(nondet)); // ?
   assert(__CPROVER_w_ok(constant)); // ?
   assert(__CPROVER_w_ok(stack, 5));
   assert(__CPROVER_w_ok(heap));
@@ -43,12 +41,12 @@ void assume_r_ok()
   
   assert(!__CPROVER_rw_ok(null));
   assert(__CPROVER_rw_ok(nondet)); // ?
-  assert(!__CPROVER_rw_ok(nondet)); // ?
   assert(__CPROVER_rw_ok(constant)); // ?
   assert(__CPROVER_rw_ok(stack, 5));
   assert(__CPROVER_rw_ok(heap));
   assert(!__CPROVER_rw_ok(invalid));
 
+  assert(0);
 }
 
 void assume_not_r_ok()
@@ -61,8 +59,8 @@ void assume_not_r_ok()
   char *invalid = (size_t)1 << (sizeof(char *) * 8 - 8);
 
   assert(!__CPROVER_r_ok(null));
-  assert(__CPROVER_r_ok(nondet)); // ?
-  assert(!__CPROVER_r_ok(nondet)); // ?
+  assert(__CPROVER_r_ok(nondet));
+  assert(!__CPROVER_r_ok(nondet));
   assert(__CPROVER_r_ok(constant));
   assert(__CPROVER_r_ok(stack, 5));
   assert(__CPROVER_r_ok(heap));
@@ -70,21 +68,19 @@ void assume_not_r_ok()
   
   __CPROVER_assume(!__CPROVER_r_ok(null));
   __CPROVER_assume(!__CPROVER_r_ok(nondet));
-  __CPROVER_assume(!__CPROVER_r_ok(constant));
-  __CPROVER_assume(!__CPROVER_r_ok(stack, 5));
-  __CPROVER_assume(!__CPROVER_r_ok(heap));
+  // __CPROVER_assume(!__CPROVER_r_ok(constant)); // false
+  // __CPROVER_assume(!__CPROVER_r_ok(stack, 5)); // false
+  // __CPROVER_assume(!__CPROVER_r_ok(heap)); // false
   __CPROVER_assume(!__CPROVER_r_ok(invalid));
 
   assert(!__CPROVER_r_ok(null));
-  assert(__CPROVER_r_ok(nondet)); // ?
-  assert(!__CPROVER_r_ok(nondet)); // ?
+  assert(!__CPROVER_r_ok(nondet));
   assert(__CPROVER_r_ok(constant));
   assert(__CPROVER_r_ok(stack, 5));
   assert(__CPROVER_r_ok(heap));
   assert(!__CPROVER_r_ok(invalid));
 
   assert(!__CPROVER_w_ok(null));
-  assert(__CPROVER_w_ok(nondet)); // ?
   assert(!__CPROVER_w_ok(nondet)); // ?
   assert(__CPROVER_w_ok(constant)); // ?
   assert(__CPROVER_w_ok(stack, 5));
@@ -92,12 +88,13 @@ void assume_not_r_ok()
   assert(!__CPROVER_r_ok(invalid));
   
   assert(!__CPROVER_rw_ok(null));
-  assert(__CPROVER_rw_ok(nondet)); // ?
   assert(!__CPROVER_rw_ok(nondet)); // ?
   assert(__CPROVER_rw_ok(constant)); // ?
   assert(__CPROVER_rw_ok(stack, 5));
   assert(__CPROVER_rw_ok(heap));
   assert(!__CPROVER_rw_ok(invalid));
+
+  assert(0);
 }
 
 void assume_w_ok()
@@ -110,44 +107,42 @@ void assume_w_ok()
   char *invalid = (size_t)1 << (sizeof(char *) * 8 - 8);
 
   assert(!__CPROVER_w_ok(null));
-  assert(__CPROVER_w_ok(nondet)); // ?
-  assert(!__CPROVER_w_ok(nondet)); // ?
+  assert(__CPROVER_w_ok(nondet));
+  assert(!__CPROVER_w_ok(nondet));
   assert(__CPROVER_w_ok(constant)); // ?
   assert(__CPROVER_w_ok(stack, 5));
   assert(__CPROVER_w_ok(heap));
   assert(!__CPROVER_r_ok(invalid));
   
-  __CPROVER_assume(__CPROVER_w_ok(null));
+  // __CPROVER_assume(__CPROVER_w_ok(null)); // false
   __CPROVER_assume(__CPROVER_w_ok(nondet));
   __CPROVER_assume(__CPROVER_w_ok(constant));
   __CPROVER_assume(__CPROVER_w_ok(stack, 5));
   __CPROVER_assume(__CPROVER_w_ok(heap));
-  __CPROVER_assume(__CPROVER_w_ok(invalid));
+  // __CPROVER_assume(__CPROVER_w_ok(invalid)); // false
 
   assert(!__CPROVER_r_ok(null));
   assert(__CPROVER_r_ok(nondet)); // ?
-  assert(!__CPROVER_r_ok(nondet)); // ?
   assert(__CPROVER_r_ok(constant));
   assert(__CPROVER_r_ok(stack, 5));
   assert(__CPROVER_r_ok(heap));
   assert(!__CPROVER_r_ok(invalid));
 
   assert(!__CPROVER_w_ok(null));
-  assert(__CPROVER_w_ok(nondet)); // ?
-  assert(!__CPROVER_w_ok(nondet)); // ?
+  assert(__CPROVER_w_ok(nondet));
   assert(__CPROVER_w_ok(constant)); // ?
   assert(__CPROVER_w_ok(stack, 5));
   assert(__CPROVER_w_ok(heap));
-  assert(!__CPROVER_r_ok(invalid));
+  assert(!__CPROVER_w_ok(invalid));
   
   assert(!__CPROVER_rw_ok(null));
   assert(__CPROVER_rw_ok(nondet)); // ?
-  assert(!__CPROVER_rw_ok(nondet)); // ?
   assert(__CPROVER_rw_ok(constant)); // ?
   assert(__CPROVER_rw_ok(stack, 5));
   assert(__CPROVER_rw_ok(heap));
   assert(!__CPROVER_rw_ok(invalid));
 
+  assert(0);
 }
 
 void assume_not_w_ok()
@@ -160,8 +155,8 @@ void assume_not_w_ok()
   char *invalid = (size_t)1 << (sizeof(char *) * 8 - 8);
 
   assert(!__CPROVER_w_ok(null));
-  assert(__CPROVER_w_ok(nondet)); // ?
-  assert(!__CPROVER_w_ok(nondet)); // ?
+  assert(__CPROVER_w_ok(nondet));
+  assert(!__CPROVER_w_ok(nondet));
   assert(__CPROVER_w_ok(constant)); // ?
   assert(__CPROVER_w_ok(stack, 5));
   assert(__CPROVER_w_ok(heap));
@@ -169,13 +164,12 @@ void assume_not_w_ok()
   
   __CPROVER_assume(!__CPROVER_w_ok(null));
   __CPROVER_assume(!__CPROVER_w_ok(nondet));
-  __CPROVER_assume(!__CPROVER_w_ok(constant));
-  __CPROVER_assume(!__CPROVER_w_ok(stack, 5));
-  __CPROVER_assume(!__CPROVER_w_ok(heap));
+  // __CPROVER_assume(!__CPROVER_w_ok(constant)); // false
+  // __CPROVER_assume(!__CPROVER_w_ok(stack, 5)); // false
+  // __CPROVER_assume(!__CPROVER_w_ok(heap)); // false
   __CPROVER_assume(!__CPROVER_w_ok(invalid));
 
   assert(!__CPROVER_r_ok(null));
-  assert(__CPROVER_r_ok(nondet)); // ?
   assert(!__CPROVER_r_ok(nondet)); // ?
   assert(__CPROVER_r_ok(constant));
   assert(__CPROVER_r_ok(stack, 5));
@@ -183,21 +177,22 @@ void assume_not_w_ok()
   assert(!__CPROVER_r_ok(invalid));
 
   assert(!__CPROVER_w_ok(null));
-  assert(__CPROVER_w_ok(nondet)); // ?
-  assert(!__CPROVER_w_ok(nondet)); // ?
+  assert(!__CPROVER_w_ok(nondet));
   assert(__CPROVER_w_ok(constant)); // ?
   assert(__CPROVER_w_ok(stack, 5));
   assert(__CPROVER_w_ok(heap));
   assert(!__CPROVER_w_ok(invalid));
   
   assert(!__CPROVER_rw_ok(null));
-  assert(__CPROVER_rw_ok(nondet)); // ?
   assert(!__CPROVER_rw_ok(nondet)); // ?
   assert(__CPROVER_rw_ok(constant)); // ?
   assert(__CPROVER_rw_ok(stack, 5));
   assert(__CPROVER_rw_ok(heap));
   assert(!__CPROVER_rw_ok(invalid));
+
+  assert(0);
 }
+
 void assume_rw_ok()
 {
   int *null = 0;
@@ -208,44 +203,42 @@ void assume_rw_ok()
   char *invalid = (size_t)1 << (sizeof(char *) * 8 - 8);
 
   assert(!__CPROVER_rw_ok(null));
-  assert(__CPROVER_rw_ok(nondet)); // ?
-  assert(!__CPROVER_rw_ok(nondet)); // ?
+  assert(__CPROVER_rw_ok(nondet));
+  assert(!__CPROVER_rw_ok(nondet));
   assert(__CPROVER_rw_ok(constant)); // ?
   assert(__CPROVER_rw_ok(stack, 5));
   assert(__CPROVER_rw_ok(heap));
   assert(!__CPROVER_rw_ok(invalid));
   
-  __CPROVER_assume(__CPROVER_rw_ok(null));
+  // __CPROVER_assume(__CPROVER_rw_ok(null)); // false
   __CPROVER_assume(__CPROVER_rw_ok(nondet));
   __CPROVER_assume(__CPROVER_rw_ok(constant));
   __CPROVER_assume(__CPROVER_rw_ok(stack, 5));
   __CPROVER_assume(__CPROVER_rw_ok(heap));
-  __CPROVER_assume(__CPROVER_rw_ok(invalid));
+  // __CPROVER_assume(__CPROVER_rw_ok(invalid)); // false
 
   assert(!__CPROVER_r_ok(null));
-  assert(__CPROVER_r_ok(nondet)); // ?
-  assert(!__CPROVER_r_ok(nondet)); // ?
+  assert(__CPROVER_r_ok(nondet));
   assert(__CPROVER_r_ok(constant));
   assert(__CPROVER_r_ok(stack, 5));
   assert(__CPROVER_r_ok(heap));
   assert(!__CPROVER_r_ok(invalid));
 
   assert(!__CPROVER_w_ok(null));
-  assert(__CPROVER_w_ok(nondet)); // ?
-  assert(!__CPROVER_w_ok(nondet)); // ?
+  assert(__CPROVER_w_ok(nondet));
   assert(__CPROVER_w_ok(constant)); // ?
   assert(__CPROVER_w_ok(stack, 5));
   assert(__CPROVER_w_ok(heap));
   assert(!__CPROVER_r_ok(invalid));
   
   assert(!__CPROVER_rw_ok(null));
-  assert(__CPROVER_rw_ok(nondet)); // ?
-  assert(!__CPROVER_rw_ok(nondet)); // ?
+  assert(__CPROVER_rw_ok(nondet));
   assert(__CPROVER_rw_ok(constant)); // ?
   assert(__CPROVER_rw_ok(stack, 5));
   assert(__CPROVER_rw_ok(heap));
   assert(!__CPROVER_rw_ok(invalid));
 
+  assert(0);
 }
 
 void assume_not_rw_ok()
@@ -267,35 +260,35 @@ void assume_not_rw_ok()
   
   __CPROVER_assume(!__CPROVER_rw_ok(null));
   __CPROVER_assume(!__CPROVER_rw_ok(nondet));
-  __CPROVER_assume(!__CPROVER_rw_ok(constant));
-  __CPROVER_assume(!__CPROVER_rw_ok(stack, 5));
-  __CPROVER_assume(!__CPROVER_rw_ok(heap));
+  // __CPROVER_assume(!__CPROVER_rw_ok(constant)); // false
+  // __CPROVER_assume(!__CPROVER_rw_ok(stack, 5)); // false
+  // __CPROVER_assume(!__CPROVER_rw_ok(heap)); // false
   __CPROVER_assume(!__CPROVER_rw_ok(invalid));
 
   assert(!__CPROVER_r_ok(null));
-  assert(__CPROVER_r_ok(nondet)); // ?
-  assert(!__CPROVER_r_ok(nondet)); // ?
-  assert(__CPROVER_r_ok(constant));
+  assert(!__CPROVER_r_ok(nondet));
+  assert(__CPROVER_r_ok(constant)); // ?
   assert(__CPROVER_r_ok(stack, 5));
   assert(__CPROVER_r_ok(heap));
   assert(!__CPROVER_r_ok(invalid));
 
   assert(!__CPROVER_w_ok(null));
-  assert(__CPROVER_w_ok(nondet)); // ?
-  assert(!__CPROVER_w_ok(nondet)); // ?
+  assert(!__CPROVER_w_ok(nondet));
   assert(__CPROVER_w_ok(constant)); // ?
   assert(__CPROVER_w_ok(stack, 5));
   assert(__CPROVER_w_ok(heap));
   assert(!__CPROVER_w_ok(invalid));
   
   assert(!__CPROVER_rw_ok(null));
-  assert(__CPROVER_rw_ok(nondet)); // ?
-  assert(!__CPROVER_rw_ok(nondet)); // ?
+  assert(!__CPROVER_rw_ok(nondet));
   assert(__CPROVER_rw_ok(constant)); // ?
   assert(__CPROVER_rw_ok(stack, 5));
   assert(__CPROVER_rw_ok(heap));
   assert(!__CPROVER_rw_ok(invalid));
+
+  assert(0);
 }
+
 void main()
 {
   assume_r_ok();
