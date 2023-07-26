@@ -9,7 +9,7 @@ void main()
 
   for(int i=1; i<SIZE; ++i)
   {
-    x[i-1] = x[i];
+    x[i] = x[i-1];
   }
 
   assert(x[SIZE-1] != 1);
