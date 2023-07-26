@@ -106,6 +106,8 @@ void assume_r_ok()
   __CPROVER_assume(__CPROVER_r_ok(p));
   assert(p != 0);
   int x = *p;
+  int y = *p;
+  assert(x == y);
   assert(x);
   assert(!x);
 }
